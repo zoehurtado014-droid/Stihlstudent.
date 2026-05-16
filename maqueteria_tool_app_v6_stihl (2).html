@@ -1,0 +1,616 @@
+
+<style>
+:root {
+  --s-orange: #FF6600;
+  --s-orange-dim: #cc5200;
+  --s-orange-bg: #1f1100;
+  --s-orange-border: #7a3000;
+  --s-bg: #0f0f0f;
+  --s-surface: #181818;
+  --s-surface2: #1f1f1f;
+  --s-border: #2c2c2c;
+  --s-border2: #3a3a3a;
+  --s-text: #e8e8e8;
+  --s-muted: #888;
+  --s-dim: #4a4a4a;
+  --s-green: #4caf50;
+  --s-blue: #3a7fc1;
+  --s-terra: #b06030;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.app { background: var(--s-bg); color: var(--s-text); border-radius: 16px; width: 340px; margin: 1rem auto; overflow: hidden; border: 1px solid #3a3a3a; min-height: 680px; display: flex; flex-direction: column; font-family: 'Arial Black', 'Arial', sans-serif; }
+.status-bar { background: #000; display: flex; justify-content: space-between; align-items: center; padding: 10px 18px 4px; font-size: 11px; color: #666; font-family: Arial, sans-serif; }
+
+/* HEADER — barra naranja Stihl */
+.header { background: var(--s-orange); padding: 12px 18px 10px; border-bottom: none; }
+.header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.app-title { font-size: 11px; font-weight: 900; color: rgba(0,0,0,0.55); letter-spacing: 0.12em; text-transform: uppercase; font-family: 'Arial Black', Arial, sans-serif; }
+.ble-badge { display: flex; align-items: center; gap: 5px; background: rgba(0,0,0,0.2); border: 0.5px solid rgba(0,0,0,0.3); border-radius: 12px; padding: 3px 10px; font-size: 11px; color: #fff; font-family: Arial, sans-serif; }
+.ble-dot { width: 6px; height: 6px; border-radius: 50%; background: #fff; animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.tool-name { font-size: 22px; font-weight: 900; color: #fff; letter-spacing: -0.01em; text-transform: uppercase; font-family: 'Arial Black', Arial, sans-serif; text-shadow: 0 1px 2px rgba(0,0,0,0.3); }
+
+/* NAV */
+.nav { display: flex; background: #111; border-bottom: 2px solid var(--s-orange); overflow-x: auto; }
+.nav::-webkit-scrollbar { display: none; }
+.nav-btn { flex: 1; min-width: 52px; padding: 10px 2px 8px; background: none; border: none; color: var(--s-dim); font-size: 9px; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 3px; transition: color 0.2s; white-space: nowrap; font-family: 'Arial Black', Arial, sans-serif; font-weight: 700; letter-spacing: 0.03em; }
+.nav-btn i { font-size: 17px; }
+.nav-btn.active { color: var(--s-orange); background: rgba(255,102,0,0.08); }
+.screen { flex: 1; padding: 14px; display: none; flex-direction: column; gap: 12px; overflow-y: auto; background: var(--s-bg); }
+.screen.active { display: flex; }
+.section-title { font-size: 10px; color: var(--s-orange); text-transform: uppercase; letter-spacing: 0.12em; padding: 0 2px; font-weight: 900; font-family: 'Arial Black', Arial, sans-serif; }
+
+/* MATERIALES */
+.material-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mat-btn { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; padding: 10px 8px; color: #bbb; font-size: 11px; cursor: pointer; text-align: center; transition: all 0.2s; display: flex; flex-direction: column; align-items: center; gap: 4px; font-family: Arial, sans-serif; }
+.mat-btn i { font-size: 20px; }
+.mat-btn .rpm-hint { font-size: 9px; color: var(--s-dim); }
+.mat-btn.selected { border-color: var(--s-orange); border-width: 2px; color: var(--s-orange); background: var(--s-orange-bg); }
+.mat-btn.selected .rpm-hint { color: var(--s-orange-dim); }
+.mat-btn.metal.selected { border-color: var(--s-blue); color: var(--s-blue); background: #0a1520; border-width: 2px; }
+.mat-btn.metal.selected .rpm-hint { color: #2a5080; }
+.mat-btn.mamposteria.selected { border-color: var(--s-terra); color: var(--s-terra); background: #1c1008; border-width: 2px; }
+.mat-btn.mamposteria.selected .rpm-hint { color: #7a4020; }
+.mat-section-label { font-size: 10px; color: var(--s-dim); padding: 4px 2px 0; letter-spacing: 0.05em; font-family: Arial, sans-serif; }
+.mat-detail { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; overflow: hidden; }
+.mat-detail-header { padding: 10px 12px 8px; border-bottom: 1px solid var(--s-border); display: flex; align-items: center; gap: 10px; }
+.mat-icon-circle { width: 36px; height: 36px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mat-detail-name { font-size: 13px; color: var(--s-text); font-weight: 700; font-family: 'Arial Black', Arial, sans-serif; }
+.mat-detail-sub { font-size: 10px; color: var(--s-muted); margin-top: 2px; }
+.mat-tips { padding: 10px 12px; }
+.mat-tip-row { display: flex; align-items: flex-start; gap: 7px; margin-bottom: 6px; font-size: 11px; color: #999; line-height: 1.4; }
+.mat-tip-row:last-child { margin-bottom: 0; }
+.mat-tip-row i { color: var(--s-orange); font-size: 13px; margin-top: 1px; flex-shrink: 0; }
+.mat-tip-row.blue i { color: var(--s-blue); }
+.mat-tip-row.terra i { color: var(--s-terra); }
+.gauge-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.gauge-card { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; padding: 10px 12px; }
+.gauge-label { font-size: 10px; color: var(--s-muted); margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.06em; font-family: Arial, sans-serif; }
+.gauge-value { font-size: 22px; font-weight: 900; color: var(--s-orange); font-family: 'Arial Black', Arial, sans-serif; }
+.gauge-value.blue { color: var(--s-blue); }
+.gauge-value.terra { color: var(--s-terra); }
+.gauge-unit { font-size: 10px; color: var(--s-dim); margin-top: 2px; }
+.gauge-bar-wrap { height: 5px; background: #2a2a2a; border-radius: 0; margin-top: 6px; }
+.gauge-bar { height: 5px; border-radius: 0; background: var(--s-orange); transition: width 0.6s ease; }
+.gauge-bar.blue { background: var(--s-blue); }
+.gauge-bar.terra { background: var(--s-terra); }
+.mode-toggle { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; }
+.mode-label { font-size: 12px; color: var(--s-text); font-weight: 700; font-family: 'Arial Black', Arial, sans-serif; }
+.mode-sub { font-size: 10px; color: var(--s-dim); margin-top: 2px; font-family: Arial, sans-serif; }
+.toggle { width: 36px; height: 20px; background: #333; border-radius: 2px; position: relative; cursor: pointer; transition: background 0.3s; border: none; flex-shrink: 0; }
+.toggle.on { background: var(--s-orange); }
+.toggle::after { content:''; position:absolute; top:3px; left:3px; width:14px; height:14px; background:#fff; border-radius:1px; transition: transform 0.3s; }
+.toggle.on::after { transform: translateX(16px); }
+.alert-card { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; overflow: hidden; }
+.alert-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--s-border); }
+.alert-row:last-child { border-bottom: none; }
+.alert-icon { width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.alert-icon.ok { background: #0a1f0a; color: var(--s-green); }
+.alert-icon.warn { background: var(--s-orange-bg); color: var(--s-orange); }
+.alert-icon i { font-size: 16px; }
+.alert-text { flex:1; }
+.alert-name { font-size: 12px; color: var(--s-text); font-weight: 700; font-family: 'Arial Black', Arial, sans-serif; }
+.alert-status { font-size: 10px; margin-top: 2px; font-family: Arial, sans-serif; }
+.alert-status.ok { color: var(--s-green); }
+.alert-status.warn { color: var(--s-orange); }
+.lock-btn { background: #1f0808; border: 1px solid #882020; border-radius: 4px; padding: 8px 12px; color: #e04444; font-size: 11px; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Arial Black', Arial, sans-serif; font-weight: 700; }
+.lock-btn.locked { background: #0a1f0a; border-color: #206020; color: var(--s-green); }
+.battery-main { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; padding: 12px; }
+.battery-pct { font-size: 36px; font-weight: 900; color: var(--s-orange); font-family: 'Arial Black', Arial, sans-serif; }
+.battery-info { display: flex; justify-content: space-between; margin-top: 8px; }
+.battery-info-item { text-align: center; }
+.battery-info-val { font-size: 13px; color: var(--s-text); font-weight: 700; font-family: 'Arial Black', Arial, sans-serif; }
+.battery-info-lab { font-size: 9px; color: var(--s-dim); margin-top: 2px; font-family: Arial, sans-serif; }
+.cells-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.cell-card { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 4px; padding: 8px; text-align: center; }
+.cell-v { font-size: 15px; font-weight: 900; color: var(--s-green); font-family: 'Arial Black', Arial, sans-serif; }
+.cell-lab { font-size: 9px; color: var(--s-dim); margin-top: 2px; font-family: Arial, sans-serif; }
+.charge-bar-wrap { background: #222; border-radius: 0; height: 6px; margin-top: 10px; }
+.charge-bar { height: 6px; border-radius: 0; background: var(--s-orange); width: 72%; }
+.stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.stat-card { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; padding: 10px 12px; }
+.stat-val { font-size: 20px; font-weight: 900; color: var(--s-orange); font-family: 'Arial Black', Arial, sans-serif; }
+.stat-lab { font-size: 10px; color: var(--s-dim); margin-top: 3px; font-family: Arial, sans-serif; }
+.locate-btn { background: var(--s-orange); border: none; border-radius: 4px; padding: 12px; color: #fff; font-size: 13px; font-weight: 900; cursor: pointer; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Arial Black', Arial, sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+.firmware-card { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
+.fw-label { font-size: 12px; color: var(--s-text); font-weight: 700; font-family: 'Arial Black', Arial, sans-serif; }
+.fw-sub { font-size: 10px; color: var(--s-dim); margin-top: 3px; font-family: Arial, sans-serif; }
+.fw-btn { background: #0a1f0a; border: 1px solid #206020; border-radius: 4px; padding: 6px 10px; color: var(--s-green); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-family: 'Arial Black', Arial, sans-serif; font-weight: 700; }
+.tut-filter { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 2px; }
+.tut-filter::-webkit-scrollbar { display: none; }
+.tut-tag { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 2px; padding: 5px 12px; font-size: 11px; color: var(--s-muted); cursor: pointer; white-space: nowrap; flex-shrink: 0; font-family: Arial, sans-serif; text-transform: uppercase; font-weight: 700; letter-spacing: 0.04em; }
+.tut-tag.active { background: var(--s-orange); border-color: var(--s-orange); color: #fff; }
+.tut-card { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+.tut-thumb { position: relative; width: 100%; height: 0; padding-bottom: 56.25%; background: #222; cursor: pointer; }
+.tut-thumb img { position: absolute; top:0; left:0; width:100%; height:100%; object-fit: cover; }
+.tut-thumb-placeholder { position: absolute; top:0; left:0; width:100%; height:100%; display: flex; align-items: center; justify-content: center; background: #1a1a1a; }
+.play-btn { width: 44px; height: 44px; background: var(--s-orange); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+.play-btn i { font-size: 22px; color: #fff; margin-left: 3px; }
+.tut-info { padding: 10px 12px; }
+.tut-title { font-size: 12px; color: var(--s-text); font-weight: 700; line-height: 1.4; font-family: Arial, sans-serif; }
+.tut-meta { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+.tut-cat { font-size: 10px; background: var(--s-orange); color: #fff; border-radius: 2px; padding: 2px 8px; font-family: Arial, sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.tut-del { background: none; border: none; color: var(--s-dim); cursor: pointer; font-size: 13px; padding: 2px 4px; }
+.add-panel { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; padding: 12px; }
+.add-panel-title { font-size: 11px; color: var(--s-orange); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; font-family: 'Arial Black', Arial, sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: 0.06em; }
+.tut-input { width: 100%; background: #0f0f0f; border: 1px solid var(--s-border2); border-radius: 4px; padding: 8px 10px; color: var(--s-text); font-size: 12px; margin-bottom: 8px; outline: none; font-family: Arial, sans-serif; }
+.tut-input:focus { border-color: var(--s-orange); }
+.tut-input::placeholder { color: var(--s-dim); }
+.tut-select { width: 100%; background: #0f0f0f; border: 1px solid var(--s-border2); border-radius: 4px; padding: 8px 10px; color: var(--s-text); font-size: 12px; margin-bottom: 8px; outline: none; font-family: Arial, sans-serif; appearance: none; }
+.add-btn { width: 100%; background: var(--s-orange); border: none; border-radius: 4px; padding: 9px; color: #fff; font-size: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Arial Black', Arial, sans-serif; text-transform: uppercase; letter-spacing: 0.05em; }
+.empty-state { text-align: center; padding: 20px 0; color: var(--s-dim); font-size: 12px; }
+.empty-state i { font-size: 32px; margin-bottom: 8px; display: block; }
+
+/* ===== DISPLAY HUB ===== */
+.profile-tabs { display: flex; gap: 6px; }
+.profile-tab { flex: 1; padding: 7px 6px; border-radius: 4px; border: 1px solid var(--s-border); background: var(--s-surface); color: var(--s-dim); font-size: 10px; cursor: pointer; text-align: center; transition: all 0.2s; font-family: 'Arial Black', Arial, sans-serif; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.profile-tab.active { background: var(--s-orange); border-color: var(--s-orange); color: #fff; }
+
+.widget-list { display: flex; flex-direction: column; gap: 7px; }
+.widget-item { background: var(--s-surface); border: 1px solid var(--s-border); border-radius: 6px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; cursor: pointer; transition: all 0.2s; }
+.widget-item.selected-widget { border-color: var(--s-orange); border-width: 2px; background: var(--s-orange-bg); }
+.widget-item.selected-widget .wi-icon { background: var(--s-orange); color: #fff; }
+.wi-icon { width: 34px; height: 34px; border-radius: 4px; background: #252525; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--s-dim); transition: all 0.2s; }
+.wi-icon i { font-size: 17px; }
+.wi-body { flex: 1; }
+.wi-name { font-size: 12px; color: var(--s-text); font-weight: 700; font-family: 'Arial Black', Arial, sans-serif; }
+.wi-desc { font-size: 10px; color: var(--s-muted); margin-top: 2px; line-height: 1.3; font-family: Arial, sans-serif; }
+.wi-check { width: 18px; height: 18px; border-radius: 2px; border: 1px solid var(--s-border2); display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+.widget-item.selected-widget .wi-check { background: var(--s-orange); border-color: var(--s-orange); }
+.wi-check i { font-size: 11px; color: #fff; display: none; }
+.widget-item.selected-widget .wi-check i { display: block; }
+
+/* MANGO PREVIEW */
+.handle-preview-wrap { display: flex; flex-direction: column; align-items: center; gap: 0; }
+.handle-label { font-size: 10px; color: var(--s-dim); text-align: center; margin-bottom: 6px; letter-spacing: 0.08em; text-transform: uppercase; font-family: Arial, sans-serif; }
+.handle-svg-wrap { width: 100%; display: flex; justify-content: center; }
+
+.screen-slot { background: #0a0a0a; border: 2px solid var(--s-orange); border-radius: 2px; padding: 10px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 64px; }
+.slot-label { font-size: 9px; color: var(--s-orange); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; font-family: 'Arial Black', Arial, sans-serif; font-weight: 900; }
+.slot-value { font-size: 26px; font-weight: 900; color: #fff; line-height: 1; font-family: 'Arial Black', Arial, sans-serif; }
+.slot-unit { font-size: 10px; color: var(--s-muted); margin-top: 2px; font-family: Arial, sans-serif; }
+.slot-bar-wrap { width: 90%; height: 5px; background: #222; border-radius: 0; margin-top: 6px; }
+.slot-bar-fill { height: 5px; border-radius: 0; background: var(--s-orange); transition: width 0.6s; }
+
+.bubble-wrap { display: flex; align-items: center; justify-content: center; gap: 0; margin: 2px 0; }
+.bubble-tube { width: 80px; height: 18px; border: 1px solid #444; border-radius: 9px; position: relative; background: #181818; overflow: hidden; }
+.bubble-ball { width: 14px; height: 14px; border-radius: 50%; background: var(--s-green); position: absolute; top: 2px; left: 33px; transition: left 0.4s; }
+.bubble-center { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); width: 1px; height: 10px; background: #444; }
+.scale-badge { background: #0a0a0a; border: 1px solid var(--s-orange); border-radius: 2px; padding: 3px 8px; font-size: 13px; color: var(--s-orange); font-weight: 900; letter-spacing: 0.05em; font-family: 'Arial Black', Arial, sans-serif; }
+
+.apply-btn { width: 100%; background: var(--s-orange); border: none; border-radius: 4px; padding: 10px; color: #fff; font-size: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; font-family: 'Arial Black', Arial, sans-serif; text-transform: uppercase; letter-spacing: 0.06em; }
+.apply-btn:active { opacity: 0.85; }
+
+.info-quote { background: var(--s-surface); border-left: 3px solid var(--s-orange); border-radius: 0; padding: 10px 12px; font-size: 10px; color: #777; line-height: 1.5; font-family: Arial, sans-serif; }
+.info-quote span { color: var(--s-orange); font-weight: 700; }
+</style>
+
+<h2 class="sr-only">App STIHL Connect — incluye Display Hub con widgets configurables para la pantalla del mango</h2>
+
+<div class="app">
+  <div class="status-bar">
+    <span>9:41</span>
+    <span style="display:flex;gap:6px;align-items:center;"><i class="ti ti-wifi" style="font-size:12px"></i><i class="ti ti-battery-2" style="font-size:12px"></i></span>
+  </div>
+  <div class="header">
+    <div class="header-top">
+      <span class="app-title" style="display:flex;align-items:center;gap:7px;">
+        <svg width="38" height="18" viewBox="0 0 38 18" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <rect width="38" height="18" rx="2" fill="rgba(0,0,0,0.25)"/>
+          <text x="19" y="13" text-anchor="middle" font-family="'Arial Black',Arial,sans-serif" font-weight="900" font-size="11" fill="#fff" letter-spacing="1">STIHL</text>
+        </svg>
+        CONNECT
+      </span>
+      <div class="ble-badge"><div class="ble-dot"></div>BLE conectado</div>
+    </div>
+    <div class="tool-name" style="display:flex;align-items:baseline;gap:8px;">MSA 200 <span style="font-size:13px;font-weight:400;color:rgba(255,255,255,0.7);letter-spacing:0.04em;">Rotativa</span></div>
+  </div>
+
+  <nav class="nav">
+    <button class="nav-btn active" onclick="showScreen('control',this)"><i class="ti ti-settings" aria-hidden="true"></i>Control</button>
+    <button class="nav-btn" onclick="showScreen('seguridad',this)"><i class="ti ti-shield-check" aria-hidden="true"></i>Safe</button>
+    <button class="nav-btn" onclick="showScreen('bateria',this)"><i class="ti ti-battery-charging" aria-hidden="true"></i>Batería</button>
+    <button class="nav-btn" onclick="showScreen('eco',this)"><i class="ti ti-world" aria-hidden="true"></i>Eco</button>
+    <button class="nav-btn" onclick="showScreen('display',this)"><i class="ti ti-device-tablet" aria-hidden="true"></i>Display</button>
+    <button class="nav-btn" onclick="showScreen('tutoriales',this)"><i class="ti ti-player-play" aria-hidden="true"></i>Tutoriales</button>
+  </nav>
+
+  <!-- CONTROL -->
+  <div class="screen active" id="screen-control">
+    <div class="section-title">Selector de material</div>
+    <div class="mat-section-label">— Plásticos y madera</div>
+    <div class="material-grid">
+      <button class="mat-btn selected" onclick="selectMat(this,'Madera',12000,2.1,'naranja',['Disco de corte estándar','Velocidad media, sin quemado','Apto modo aprendizaje'])"><i class="ti ti-trees" aria-hidden="true"></i>Madera<span class="rpm-hint">12.000 RPM · 2.1 Nm</span></button>
+      <button class="mat-btn" onclick="selectMat(this,'Acrílico',18000,1.4,'naranja',['Disco fino, sin presión','Alta velocidad para corte limpio','Refrigerar con pausas'])"><i class="ti ti-square-rotated" aria-hidden="true"></i>Acrílico<span class="rpm-hint">18.000 RPM · 1.4 Nm</span></button>
+      <button class="mat-btn" onclick="selectMat(this,'Alto impacto',15000,1.8,'naranja',['Disco multipropósito','Velocidad media-alta','Evitar sobrecalentamiento'])"><i class="ti ti-box" aria-hidden="true"></i>Alto impacto<span class="rpm-hint">15.000 RPM · 1.8 Nm</span></button>
+      <button class="mat-btn" onclick="selectMat(this,'MDF',10000,2.5,'naranja',['Disco para madera aglomerada','Baja velocidad, mucho polvo','Usar mascarilla P2'])"><i class="ti ti-layout-board" aria-hidden="true"></i>MDF<span class="rpm-hint">10.000 RPM · 2.5 Nm</span></button>
+    </div>
+    <div class="mat-section-label">— Metales</div>
+    <div class="material-grid">
+      <button class="mat-btn metal" onclick="selectMat(this,'Chapa de acero',8000,3.2,'azul',['Disco de corte para metal','Baja RPM, alto torque','Usar refrigerante o pausas frecuentes'])"><i class="ti ti-bolt" aria-hidden="true"></i>Chapa de acero<span class="rpm-hint">8.000 RPM · 3.2 Nm</span></button>
+      <button class="mat-btn metal" onclick="selectMat(this,'Aluminio',13000,2.0,'azul',['Disco específico para aluminio','Velocidad media-alta','Evitar disco de acero: se traba'])"><i class="ti ti-brand-gitlab" aria-hidden="true"></i>Aluminio<span class="rpm-hint">13.000 RPM · 2.0 Nm</span></button>
+      <button class="mat-btn metal" onclick="selectMat(this,'Hierro / perfil',7000,3.5,'azul',['Disco reforzado de metal','Máximo torque, mínima RPM','EPP completo obligatorio'])"><i class="ti ti-cube" aria-hidden="true"></i>Hierro / perfil<span class="rpm-hint">7.000 RPM · 3.5 Nm</span></button>
+      <button class="mat-btn metal" onclick="selectMat(this,'Cobre / bronce',11000,2.3,'azul',['Disco fino no ferroso','Velocidad moderada','Material blando: cuidar el disco'])"><i class="ti ti-circle" aria-hidden="true"></i>Cobre / bronce<span class="rpm-hint">11.000 RPM · 2.3 Nm</span></button>
+    </div>
+    <div class="mat-section-label">— Mampostería liviana</div>
+    <div class="material-grid">
+      <button class="mat-btn mamposteria" onclick="selectMat(this,'Yeso / durlock',6000,2.8,'terra',['Disco diamantado fino','Baja velocidad, mucho polvo','Mascarilla y aspiración recomendadas'])"><i class="ti ti-wall" aria-hidden="true"></i>Yeso / durlock<span class="rpm-hint">6.000 RPM · 2.8 Nm</span></button>
+      <button class="mat-btn mamposteria" onclick="selectMat(this,'Ladrillo hueco',5500,3.0,'terra',['Disco segmentado diamantado','Muy baja velocidad','Vibración alta: sujetar bien'])"><i class="ti ti-grid-dots" aria-hidden="true"></i>Ladrillo hueco<span class="rpm-hint">5.500 RPM · 3.0 Nm</span></button>
+      <button class="mat-btn mamposteria" onclick="selectMat(this,'Bloque de cemento',5000,3.3,'terra',['Disco diamantado reforzado','Máxima potencia abrasiva','Pausas cada 30 seg'])"><i class="ti ti-layout-distribute-horizontal" aria-hidden="true"></i>Bloque de cemento<span class="rpm-hint">5.000 RPM · 3.3 Nm</span></button>
+      <button class="mat-btn mamposteria" onclick="selectMat(this,'Porcelanato',9000,2.6,'terra',['Disco diamantado continuo','Velocidad media','Corte en húmedo si es posible'])"><i class="ti ti-texture" aria-hidden="true"></i>Porcelanato<span class="rpm-hint">9.000 RPM · 2.6 Nm</span></button>
+    </div>
+    <div class="gauge-row">
+      <div class="gauge-card"><div class="gauge-label">RPM actuales</div><div class="gauge-value" id="rpm-val">12.000</div><div class="gauge-unit">RPM</div><div class="gauge-bar-wrap"><div class="gauge-bar" id="rpm-bar" style="width:60%"></div></div></div>
+      <div class="gauge-card"><div class="gauge-label">Torque</div><div class="gauge-value" id="torque-val">2.1</div><div class="gauge-unit">Nm</div><div class="gauge-bar-wrap"><div class="gauge-bar" id="torque-bar" style="width:70%"></div></div></div>
+    </div>
+    <div class="mat-detail" id="mat-detail">
+      <div class="mat-detail-header">
+        <div class="mat-icon-circle" id="mat-icon-circle" style="background:#2a1a0a;"><i class="ti ti-trees" id="mat-icon" style="font-size:18px;color:#ff6a00" aria-hidden="true"></i></div>
+        <div><div class="mat-detail-name" id="mat-detail-name">Madera</div><div class="mat-detail-sub" id="mat-detail-sub">Disco de corte estándar · 12.000 RPM</div></div>
+      </div>
+      <div class="mat-tips" id="mat-tips">
+        <div class="mat-tip-row"><i class="ti ti-info-circle" aria-hidden="true"></i>Disco de corte estándar</div>
+        <div class="mat-tip-row"><i class="ti ti-info-circle" aria-hidden="true"></i>Velocidad media, sin quemado</div>
+        <div class="mat-tip-row"><i class="ti ti-info-circle" aria-hidden="true"></i>Apto modo aprendizaje</div>
+      </div>
+    </div>
+    <div class="mode-toggle">
+      <div><div class="mode-label">Modo aprendizaje</div><div class="mode-sub">Limita potencia al 60%</div></div>
+      <button class="toggle" onclick="this.classList.toggle('on')" aria-label="Activar modo aprendizaje"></button>
+    </div>
+  </div>
+
+  <!-- SAFE -->
+  <div class="screen" id="screen-seguridad">
+    <div class="section-title">Safe-check</div>
+    <div class="alert-card">
+      <div class="alert-row"><div class="alert-icon ok"><i class="ti ti-hand-stop" aria-hidden="true"></i></div><div class="alert-text"><div class="alert-name">Sensor proximidad</div><div class="alert-status ok">Zona segura — 18 cm</div></div></div>
+      <div class="alert-row"><div class="alert-icon warn"><i class="ti ti-cut" aria-hidden="true"></i></div><div class="alert-text"><div class="alert-name">Disco de corte</div><div class="alert-status warn">Desgaste 68% — pronto a cambiar</div></div></div>
+      <div class="alert-row"><div class="alert-icon ok"><i class="ti ti-ripple" aria-hidden="true"></i></div><div class="alert-text"><div class="alert-name">Lija</div><div class="alert-status ok">En buen estado — 91%</div></div></div>
+    </div>
+    <div class="section-title">Bloqueo docente</div>
+    <div style="background:#1a1a1a;border:0.5px solid #2a2a2a;border-radius:10px;padding:12px;">
+      <div style="font-size:11px;color:#666;margin-bottom:8px;">Bloqueá la herramienta remotamente desde el celular.</div>
+      <button class="lock-btn" id="lock-btn" onclick="toggleLock()"><i class="ti ti-lock" aria-hidden="true"></i><span id="lock-text">Bloquear herramienta</span></button>
+    </div>
+  </div>
+
+  <!-- BATERIA -->
+  <div class="screen" id="screen-bateria">
+    <div class="battery-main">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div><div class="gauge-label">Carga total</div><div class="battery-pct">72%</div></div>
+        <i class="ti ti-battery-charging" style="font-size:28px;color:#ff6a00;margin-top:4px" aria-hidden="true"></i>
+      </div>
+      <div class="charge-bar-wrap"><div class="charge-bar"></div></div>
+      <div class="battery-info">
+        <div class="battery-info-item"><div class="battery-info-val">~38 min</div><div class="battery-info-lab">Carga completa (USB-C PD)</div></div>
+        <div class="battery-info-item"><div class="battery-info-val">1h 20m</div><div class="battery-info-lab">Autonomía restante</div></div>
+      </div>
+    </div>
+    <div class="section-title">Celdas de litio</div>
+    <div class="cells-grid">
+      <div class="cell-card"><div class="cell-v">3.92 V</div><div class="cell-lab">Celda 1</div></div>
+      <div class="cell-card"><div class="cell-v">3.89 V</div><div class="cell-lab">Celda 2</div></div>
+      <div class="cell-card"><div class="cell-v">3.91 V</div><div class="cell-lab">Celda 3</div></div>
+    </div>
+    <div class="section-title">Contador de uso</div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val">4h 32m</div><div class="stat-lab">Tiempo total de corte</div></div>
+      <div class="stat-card"><div class="stat-val">1h 18m</div><div class="stat-lab">Tiempo de lijado</div></div>
+    </div>
+  </div>
+
+  <!-- ECO -->
+  <div class="screen" id="screen-eco">
+    <div class="section-title">Localizar herramienta</div>
+    <div style="background:#1a1a1a;border:0.5px solid #2a2a2a;border-radius:10px;padding:12px;">
+      <div style="font-size:11px;color:#666;margin-bottom:8px;">Última ubicación registrada hace 2 min.</div>
+      <div style="font-size:12px;color:#ccc;margin-bottom:10px;display:flex;align-items:center;gap:6px;"><i class="ti ti-map-pin" style="font-size:15px;color:#ff6a00" aria-hidden="true"></i>Taller 3B — FADU, Ciudad Universitaria</div>
+      <button class="locate-btn"><i class="ti ti-radar" aria-hidden="true"></i>Activar señal acústica</button>
+    </div>
+    <div class="section-title">Firmware</div>
+    <div class="firmware-card">
+      <div><div class="fw-label">Versión actual: v2.4.1</div><div class="fw-sub">Nuevos perfiles: balsa, foam, PVC</div></div>
+      <button class="fw-btn"><i class="ti ti-download" style="font-size:13px" aria-hidden="true"></i>v2.5.0</button>
+    </div>
+    <div class="section-title">Perfiles de corte</div>
+    <div class="alert-card">
+      <div class="alert-row"><div class="alert-icon ok"><i class="ti ti-check" aria-hidden="true"></i></div><div class="alert-text"><div class="alert-name">Balsa</div><div class="alert-status ok">Instalado</div></div></div>
+      <div class="alert-row"><div class="alert-icon ok"><i class="ti ti-check" aria-hidden="true"></i></div><div class="alert-text"><div class="alert-name">Foam / Telgopor</div><div class="alert-status ok">Instalado</div></div></div>
+      <div class="alert-row"><div class="alert-icon warn"><i class="ti ti-download" aria-hidden="true"></i></div><div class="alert-text"><div class="alert-name">PVC rígido</div><div class="alert-status warn">Disponible en v2.5.0</div></div></div>
+    </div>
+  </div>
+
+  <!-- DISPLAY HUB -->
+  <div class="screen" id="screen-display">
+    <div class="section-title">Visualización adaptativa</div>
+
+    <!-- Preview mango -->
+    <div class="handle-preview-wrap">
+      <div class="handle-label">Vista previa — pantalla del mango</div>
+      <div class="handle-svg-wrap">
+        <svg viewBox="0 0 220 370" width="160" aria-label="Simulación visual del mango de la herramienta con pantalla configurable" role="img">
+          <title>Mango herramienta STIHL MSA 200</title>
+          <!-- cuerpo mango — negro con franja naranja -->
+          <rect x="72" y="10" width="76" height="280" rx="22" fill="#141414" stroke="#2a2a2a" stroke-width="1.5"/>
+          <!-- franja naranja lateral Stihl -->
+          <rect x="72" y="80" width="6" height="140" rx="3" fill="#FF6600"/>
+          <rect x="142" y="80" width="6" height="140" rx="3" fill="#FF6600"/>
+          <!-- zona pantalla — horizontal 35mm x 18mm -->
+          <rect x="81" y="34" width="58" height="30" rx="3" fill="#080808" stroke="#FF6600" stroke-width="1.5"/>
+          <!-- contenido pantalla dinámico -->
+          <g id="svg-slot">
+            <text x="110" y="44" text-anchor="middle" font-size="7" fill="#FF6600" font-family="'Arial Black',Arial,sans-serif" font-weight="900" letter-spacing="1">AUTONOMÍA</text>
+            <text x="110" y="57" text-anchor="middle" font-size="16" fill="#ffffff" font-family="'Arial Black',Arial,sans-serif" font-weight="900">22</text>
+            <text x="110" y="66" text-anchor="middle" font-size="6" fill="#888" font-family="Arial,sans-serif">min restantes</text>
+          </g>
+          <!-- botones laterales — estilo Stihl -->
+          <rect x="148" y="50" width="7" height="22" rx="2" fill="#FF6600"/>
+          <rect x="148" y="76" width="7" height="14" rx="2" fill="#333"/>
+          <rect x="65" y="50" width="7" height="22" rx="2" fill="#FF6600"/>
+          <!-- detalle grip textura -->
+          <rect x="80" y="130" width="60" height="3" rx="1" fill="#222"/>
+          <rect x="80" y="138" width="60" height="3" rx="1" fill="#222"/>
+          <rect x="80" y="146" width="60" height="3" rx="1" fill="#222"/>
+          <rect x="80" y="154" width="60" height="3" rx="1" fill="#222"/>
+          <rect x="80" y="162" width="60" height="3" rx="1" fill="#222"/>
+          <!-- cabezal -->
+          <rect x="85" y="290" width="50" height="32" rx="6" fill="#1a1a1a" stroke="#3a3a3a" stroke-width="1.2"/>
+          <rect x="96" y="322" width="28" height="14" rx="3" fill="#111" stroke="#2a2a2a" stroke-width="1"/>
+          <!-- disco -->
+          <ellipse cx="110" cy="350" rx="20" ry="5" fill="none" stroke="#444" stroke-width="1.5"/>
+          <line x1="90" y1="350" x2="130" y2="350" stroke="#444" stroke-width="1.5"/>
+          <!-- logo STIHL en el mango -->
+          <rect x="86" y="220" width="48" height="16" rx="2" fill="#FF6600"/>
+          <text x="110" y="232" text-anchor="middle" font-size="9" fill="#fff" font-family="'Arial Black',Arial,sans-serif" font-weight="900" letter-spacing="2">STIHL</text>
+          <!-- LED -->
+          <circle cx="110" cy="255" r="3" fill="#FF6600" opacity="0.8"/>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Perfil -->
+    <div class="section-title">Perfil de usuario</div>
+    <div class="profile-tabs">
+      <button class="profile-tab active" onclick="setProfile('arq',this)"><i class="ti ti-building-arch" style="font-size:13px;display:block;margin:0 auto 3px" aria-hidden="true"></i>Arquitectura</button>
+      <button class="profile-tab" onclick="setProfile('di',this)"><i class="ti ti-tool" style="font-size:13px;display:block;margin:0 auto 3px" aria-hidden="true"></i>Diseño ind.</button>
+      <button class="profile-tab" onclick="setProfile('custom',this)"><i class="ti ti-adjustments" style="font-size:13px;display:block;margin:0 auto 3px" aria-hidden="true"></i>Personalizado</button>
+    </div>
+
+    <!-- Widgets -->
+    <div class="section-title">Widgets disponibles — elegí uno</div>
+    <div class="widget-list" id="widget-list">
+      <div class="widget-item selected-widget" onclick="selectWidget(this,'autonomia')" data-id="autonomia">
+        <div class="wi-icon"><i class="ti ti-clock-hour-4" aria-hidden="true"></i></div>
+        <div class="wi-body"><div class="wi-name">Autonomía real</div><div class="wi-desc">Tiempo de uso continuo restante en minutos, no porcentaje.</div></div>
+        <div class="wi-check"><i class="ti ti-check" aria-hidden="true"></i></div>
+      </div>
+      <div class="widget-item" onclick="selectWidget(this,'nivel')" data-id="nivel">
+        <div class="wi-icon"><i class="ti ti-adjustments-horizontal" aria-hidden="true"></i></div>
+        <div class="wi-body"><div class="wi-name">Nivel / giroscopio</div><div class="wi-desc">Burbuja digital para cortes perpendiculares al plano base.</div></div>
+        <div class="wi-check"><i class="ti ti-check" aria-hidden="true"></i></div>
+      </div>
+      <div class="widget-item" onclick="selectWidget(this,'escala')" data-id="escala">
+        <div class="wi-icon"><i class="ti ti-rulers" aria-hidden="true"></i></div>
+        <div class="wi-body"><div class="wi-name">Guía de escala</div><div class="wi-desc">Escala activa seteada (ej. 1:50). Velocidad ajustada a materiales finos.</div></div>
+        <div class="wi-check"><i class="ti ti-check" aria-hidden="true"></i></div>
+      </div>
+      <div class="widget-item" onclick="selectWidget(this,'rpm')" data-id="rpm">
+        <div class="wi-icon"><i class="ti ti-rotate-clockwise" aria-hidden="true"></i></div>
+        <div class="wi-body"><div class="wi-name">Tacómetro RPM</div><div class="wi-desc">Revoluciones exactas en tiempo real. Crítico para plásticos como ABS.</div></div>
+        <div class="wi-check"><i class="ti ti-check" aria-hidden="true"></i></div>
+      </div>
+      <div class="widget-item" onclick="selectWidget(this,'torque')" data-id="torque">
+        <div class="wi-icon"><i class="ti ti-chart-bar" aria-hidden="true"></i></div>
+        <div class="wi-body"><div class="wi-name">Indicador de carga</div><div class="wi-desc">Presión sobre el motor en %. Evitá forzar la herramienta.</div></div>
+        <div class="wi-check"><i class="ti ti-check" aria-hidden="true"></i></div>
+      </div>
+      <div class="widget-item" onclick="selectWidget(this,'temp')" data-id="temp">
+        <div class="wi-icon"><i class="ti ti-temperature" aria-hidden="true"></i></div>
+        <div class="wi-body"><div class="wi-name">Temperatura del motor</div><div class="wi-desc">Vital en sesiones largas de lijado de espuma o madera dura.</div></div>
+        <div class="wi-check"><i class="ti ti-check" aria-hidden="true"></i></div>
+      </div>
+    </div>
+
+    <button class="apply-btn" onclick="applyWidget()"><i class="ti ti-device-tablet" aria-hidden="true"></i>Aplicar al mango</button>
+
+    <div class="info-quote"><span>STIHL SafeDesign — Visualización Adaptativa:</span> el usuario decide qué dato es crítico para su seguridad y precisión, reflejándolo instantáneamente en el mango.</div>
+  </div>
+
+  <!-- TUTORIALES -->
+  <div class="screen" id="screen-tutoriales">
+    <div class="section-title">Tutoriales</div>
+    <div class="tut-filter">
+      <button class="tut-tag active" onclick="filterTut('todos',this)">Todos</button>
+      <button class="tut-tag" onclick="filterTut('corte',this)">Corte</button>
+      <button class="tut-tag" onclick="filterTut('lijado',this)">Lijado</button>
+      <button class="tut-tag" onclick="filterTut('seguridad',this)">Seguridad</button>
+      <button class="tut-tag" onclick="filterTut('materiales',this)">Materiales</button>
+    </div>
+    <div id="tut-list"></div>
+    <div class="add-panel">
+      <div class="add-panel-title"><i class="ti ti-plus" style="font-size:14px;color:#ff6a00" aria-hidden="true"></i>Agregar tutorial</div>
+      <input class="tut-input" id="tut-url" placeholder="Pegá el link de YouTube..." type="url" />
+      <input class="tut-input" id="tut-title" placeholder="Nombre del tutorial..." />
+      <select class="tut-select" id="tut-cat">
+        <option value="corte">Corte</option>
+        <option value="lijado">Lijado</option>
+        <option value="seguridad">Seguridad</option>
+        <option value="materiales">Materiales</option>
+      </select>
+      <button class="add-btn" onclick="addTutorial()"><i class="ti ti-player-play" aria-hidden="true"></i>Agregar tutorial</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(id, btn) {
+  document.querySelectorAll('.screen').forEach(s => { s.style.display='none'; s.classList.remove('active'); });
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const sc = document.getElementById('screen-'+id);
+  sc.style.display='flex'; sc.classList.add('active');
+  btn.classList.add('active');
+}
+
+const colorMap = {
+  naranja:{accent:'#ff6a00',bg:'#2a1a0a',gaugeCls:'',barCls:''},
+  azul:{accent:'#4a90d9',bg:'#0a1420',gaugeCls:'blue',barCls:'blue'},
+  terra:{accent:'#c0784a',bg:'#1e120a',gaugeCls:'terra',barCls:'terra'},
+};
+function selectMat(btn,name,rpm,torque,color,tips){
+  document.querySelectorAll('.mat-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  const c=colorMap[color];
+  const rv=document.getElementById('rpm-val'); rv.textContent=rpm.toLocaleString('es-AR'); rv.className='gauge-value '+c.gaugeCls;
+  const tv=document.getElementById('torque-val'); tv.textContent=torque.toFixed(1); tv.className='gauge-value '+c.gaugeCls;
+  const rb=document.getElementById('rpm-bar'); rb.style.width=Math.round((rpm/20000)*100)+'%'; rb.className='gauge-bar '+c.barCls;
+  const tb=document.getElementById('torque-bar'); tb.style.width=Math.round((torque/4)*100)+'%'; tb.className='gauge-bar '+c.barCls;
+  document.getElementById('mat-detail-name').textContent=name;
+  document.getElementById('mat-detail-sub').textContent=tips[0]+' · '+rpm.toLocaleString('es-AR')+' RPM';
+  const circle=document.getElementById('mat-icon-circle'); circle.style.background=c.bg;
+  const iconEl=document.getElementById('mat-icon'); iconEl.style.color=c.accent; iconEl.className=btn.querySelector('i').className;
+  const tc=color==='azul'?'mat-tip-row blue':color==='terra'?'mat-tip-row terra':'mat-tip-row';
+  document.getElementById('mat-tips').innerHTML=tips.map(t=>`<div class="${tc}"><i class="ti ti-info-circle" aria-hidden="true"></i>${t}</div>`).join('');
+}
+
+let locked=false;
+function toggleLock(){
+  locked=!locked;
+  const btn=document.getElementById('lock-btn');
+  btn.classList.toggle('locked',locked);
+  document.getElementById('lock-text').textContent=locked?'Herramienta bloqueada':'Bloquear herramienta';
+  btn.querySelector('i').className=locked?'ti ti-lock-open':'ti ti-lock';
+}
+
+// DISPLAY HUB
+const widgetData = {
+  autonomia: {
+    label:'AUTONOMÍA',
+    svgContent: `<text x="110" y="44" text-anchor="middle" font-size="7" fill="#ff6a00" font-family="monospace" letter-spacing="1">AUTONOMÍA</text>
+      <text x="110" y="57" text-anchor="middle" font-size="16" fill="#ffffff" font-family="monospace" font-weight="bold">22</text>
+      <text x="110" y="66" text-anchor="middle" font-size="6" fill="#888" font-family="monospace">min restantes</text>`
+  },
+  nivel: {
+    label:'NIVEL',
+    svgContent: `<text x="110" y="42" text-anchor="middle" font-size="7" fill="#ff6a00" font-family="monospace" letter-spacing="1">NIVEL</text>
+      <rect x="88" y="45" width="44" height="12" rx="6" fill="#181818" stroke="#444" stroke-width="1"/>
+      <circle cx="110" cy="51" r="4" fill="#5cb85c"/>
+      <line x1="110" y1="44" x2="110" y2="58" stroke="#333" stroke-width="0.8"/>
+      <text x="110" y="63" text-anchor="middle" font-size="6" fill="#5cb85c" font-family="monospace">CENTRADO ±0.2°</text>`
+  },
+  escala: {
+    label:'ESCALA',
+    svgContent: `<text x="110" y="42" text-anchor="middle" font-size="7" fill="#ff6a00" font-family="monospace" letter-spacing="1">ESCALA</text>
+      <rect x="92" y="44" width="36" height="16" rx="3" fill="#1a1a1a" stroke="#ff6a00" stroke-width="1"/>
+      <text x="110" y="56" text-anchor="middle" font-size="10" fill="#ff6a00" font-family="monospace" font-weight="bold">1:50</text>
+      <text x="110" y="66" text-anchor="middle" font-size="6" fill="#666" font-family="monospace">cartón pluma · v=ajustada</text>`
+  },
+  rpm: {
+    label:'RPM',
+    svgContent: `<text x="110" y="42" text-anchor="middle" font-size="7" fill="#ff6a00" font-family="monospace" letter-spacing="1">TACÓMETRO</text>
+      <text x="110" y="56" text-anchor="middle" font-size="14" fill="#ffffff" font-family="monospace" font-weight="bold">12.000</text>
+      <text x="110" y="63" text-anchor="middle" font-size="6" fill="#888" font-family="monospace">RPM</text>
+      <rect x="88" y="65" width="44" height="3" rx="1.5" fill="#222"/>
+      <rect x="88" y="65" width="26" height="3" rx="1.5" fill="#ff6a00"/>`
+  },
+  torque: {
+    label:'CARGA',
+    svgContent: `<text x="110" y="42" text-anchor="middle" font-size="7" fill="#ff6a00" font-family="monospace" letter-spacing="1">CARGA</text>
+      <text x="110" y="55" text-anchor="middle" font-size="14" fill="#ffffff" font-family="monospace" font-weight="bold">45%</text>
+      <rect x="88" y="57" width="44" height="4" rx="2" fill="#222"/>
+      <rect x="88" y="57" width="20" height="4" rx="2" fill="#ff6a00"/>
+      <text x="110" y="66" text-anchor="middle" font-size="6" fill="#666" font-family="monospace">motor ok</text>`
+  },
+  temp: {
+    label:'TEMP',
+    svgContent: `<text x="110" y="42" text-anchor="middle" font-size="7" fill="#ff6a00" font-family="monospace" letter-spacing="1">TEMPERATURA</text>
+      <text x="110" y="56" text-anchor="middle" font-size="14" fill="#ffffff" font-family="monospace" font-weight="bold">42°C</text>
+      <text x="110" y="63" text-anchor="middle" font-size="6" fill="#5cb85c" font-family="monospace">● NORMAL</text>
+      <text x="110" y="70" text-anchor="middle" font-size="5.5" fill="#555" font-family="monospace">límite: 75°C</text>`
+  }
+};
+
+const profileWidgets = {
+  arq: ['autonomia','nivel','escala'],
+  di: ['rpm','torque','temp'],
+  custom: ['autonomia','nivel','escala','rpm','torque','temp']
+};
+
+let selectedWidget = 'autonomia';
+
+function selectWidget(el, id) {
+  document.querySelectorAll('.widget-item').forEach(w => w.classList.remove('selected-widget'));
+  el.classList.add('selected-widget');
+  selectedWidget = id;
+}
+
+function applyWidget() {
+  const d = widgetData[selectedWidget];
+  if (!d) return;
+  document.getElementById('svg-slot').innerHTML = d.svgContent;
+  const btn = document.querySelector('.apply-btn');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="ti ti-check" aria-hidden="true"></i>Aplicado al mango';
+  btn.style.background = '#2a5a2a';
+  setTimeout(() => { btn.innerHTML = orig; btn.style.background = '#ff6a00'; }, 1800);
+}
+
+function setProfile(profile, btn) {
+  document.querySelectorAll('.profile-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const allowed = profileWidgets[profile];
+  const items = document.querySelectorAll('.widget-item');
+  items.forEach(item => {
+    const id = item.getAttribute('data-id');
+    if (allowed.includes(id)) {
+      item.style.display = 'flex';
+    } else {
+      item.style.display = 'none';
+      if (item.classList.contains('selected-widget')) {
+        item.classList.remove('selected-widget');
+      }
+    }
+  });
+  const firstVisible = document.querySelector('.widget-item[style="display: flex;"]') || document.querySelector('.widget-item');
+  if (firstVisible) {
+    firstVisible.classList.add('selected-widget');
+    selectedWidget = firstVisible.getAttribute('data-id');
+  }
+}
+
+// TUTORIALES
+let tutorials=[
+  {id:1,title:'Cómo usar la moladora rotativa — primeros pasos',url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ',cat:'corte'},
+  {id:2,title:'Técnicas de lijado en maquetería de arquitectura',url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ',cat:'lijado'},
+  {id:3,title:'Seguridad en el taller — EPP y buenas prácticas',url:'https://www.youtube.com/watch?v=dQw4w9WgXcQ',cat:'seguridad'},
+];
+let nextId=4, activeFilter='todos';
+function getYTId(url){const m=url.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/);return m?m[1]:null;}
+function renderTutorials(){
+  const list=document.getElementById('tut-list');
+  const filtered=activeFilter==='todos'?tutorials:tutorials.filter(t=>t.cat===activeFilter);
+  if(!filtered.length){list.innerHTML='<div class="empty-state"><i class="ti ti-video-off" aria-hidden="true"></i>No hay tutoriales en esta categoría.</div>';return;}
+  const cl={corte:'Corte',lijado:'Lijado',seguridad:'Seguridad',materiales:'Materiales'};
+  list.innerHTML=filtered.map(t=>{
+    const vid=getYTId(t.url);
+    const thumb=vid?`<img src="https://img.youtube.com/vi/${vid}/mqdefault.jpg" alt="Miniatura ${t.title}" loading="lazy">`:`<div class="tut-thumb-placeholder"><div class="play-btn"><i class="ti ti-player-play" aria-hidden="true"></i></div></div>`;
+    return `<div class="tut-card"><div class="tut-thumb" onclick="openVideo('${t.url}')" role="button" tabindex="0" aria-label="Reproducir ${t.title}">${thumb}<div style="position:absolute;bottom:8px;right:8px;background:#ff6a00;border-radius:6px;padding:3px 8px;font-size:10px;color:#fff;display:flex;align-items:center;gap:4px;"><i class="ti ti-brand-youtube" style="font-size:12px" aria-hidden="true"></i>YouTube</div></div><div class="tut-info"><div class="tut-title">${t.title}</div><div class="tut-meta"><span class="tut-cat">${cl[t.cat]||t.cat}</span><button class="tut-del" onclick="deleteTut(${t.id})" aria-label="Eliminar tutorial"><i class="ti ti-trash" aria-hidden="true"></i></button></div></div></div>`;
+  }).join('');
+}
+function filterTut(cat,btn){activeFilter=cat;document.querySelectorAll('.tut-tag').forEach(b=>b.classList.remove('active'));btn.classList.add('active');renderTutorials();}
+function openVideo(url){if(url&&url.startsWith('http'))window.open(url,'_blank');}
+function addTutorial(){
+  const urlEl=document.getElementById('tut-url'),titleEl=document.getElementById('tut-title');
+  const url=urlEl.value.trim(),title=titleEl.value.trim(),cat=document.getElementById('tut-cat').value;
+  urlEl.style.borderColor='#333';titleEl.style.borderColor='#333';
+  if(!url||!title){if(!url)urlEl.style.borderColor='#e24b4a';if(!title)titleEl.style.borderColor='#e24b4a';return;}
+  if(!url.includes('youtube.com')&&!url.includes('youtu.be')){urlEl.style.borderColor='#e24b4a';return;}
+  tutorials.unshift({id:nextId++,title,url,cat});
+  urlEl.value='';titleEl.value='';
+  activeFilter='todos';document.querySelectorAll('.tut-tag').forEach((b,i)=>b.classList.toggle('active',i===0));
+  renderTutorials();
+}
+function deleteTut(id){tutorials=tutorials.filter(t=>t.id!==id);renderTutorials();}
+renderTutorials();
+</script>
